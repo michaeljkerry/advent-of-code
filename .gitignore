@@ -1,0 +1,7 @@
+.idea/
+.ssl/
+target/
+project/project
+**/*.iml
+.bsp/
+project/metals.sbt
