@@ -4,13 +4,14 @@ import scala.annotation.tailrec
 import scala.io.Source.fromResource
 
 object Day10 extends App {
-  val input = fromResource("Year2021/Day10Test.txt")
+  val input = fromResource("Year2021/Day10.txt")
     .getLines()
     .toList
     .map(_.toList)
   println(input)
 
   case class Symbol(symbol: Char, count: Int)
+  case class SyntaxErrors(syntaxErrors: List[Char])
   case class OpeningSymbol(symbol: Char, count: Int, pendingClosure: Boolean)
   case class ClosingSymbol(symbol: Char, count: Int, closedAnOpening: Boolean)
 
@@ -21,6 +22,7 @@ object Day10 extends App {
 
   def isOpeningSymbol(c: Char): Boolean = "({[<".contains(c)
   def isClosingSymbol(c: Char): Boolean = ")}]>".contains(c)
+
   val closingSymbols = Map(
     ')' -> '(',
     '}' -> '{',
@@ -35,11 +37,18 @@ object Day10 extends App {
     '<' -> '>'
   )
 
+  val syntaxErrorScore = Map(
+    ')' -> 3,
+    '}' -> 1197,
+    ']' -> 57,
+    '>' -> 25137
+  )
+
   @tailrec
-  def processLine(line: List[Char], charsToProcess: List[Char], symbols: List[Symbol], pendingOpeningSymbols: List[Char]): List[Symbol] = {
+  def processLine(line: List[Char], charsToProcess: List[Char], symbols: List[Symbol], pendingOpeningSymbols: List[Char], syntaxErrors: SyntaxErrors): (List[Symbol], SyntaxErrors) = {
 //    println(line)
 //    println(charsToProcess)
-    println(pendingOpeningSymbols)
+//    println(pendingOpeningSymbols)
     charsToProcess match {
       case currentSymbol :: rest => {
         println(currentSymbol)
@@ -48,32 +57,44 @@ object Day10 extends App {
 //          check there is a pending opening symbol
 //          what is the last opening symbol??
           val openingSymbol = closingSymbols.getOrElse(currentSymbol, '?')
-          if (pendingOpeningSymbols.head != openingSymbol) println(s"Syntax error: $currentSymbol in $charsToProcess expecting ${openingSymbols.getOrElse(pendingOpeningSymbols.head, '?')}") else println("OK")
-          processLine(line, rest, newSymbols, pendingOpeningSymbols.tail)
+          if (pendingOpeningSymbols.head != openingSymbol) {
+            println(s"Syntax error: $currentSymbol in $charsToProcess expecting ${openingSymbols.getOrElse(pendingOpeningSymbols.head, '?')}")
+//            processLine(line, rest, newSymbols, pendingOpeningSymbols.tail, SyntaxErrors(currentSymbol :: syntaxErrors.syntaxErrors))
+          } else println("OK")
+          val newSyntaxErrors = if (pendingOpeningSymbols.head == openingSymbol) syntaxErrors else SyntaxErrors(currentSymbol :: syntaxErrors.syntaxErrors)
+          processLine(line, rest, newSymbols, pendingOpeningSymbols.tail, newSyntaxErrors)
         }
         else {
+//          opening symbol
           val newSymbols = updateSymbols(currentSymbol, symbols)
-          processLine(line, rest, newSymbols, currentSymbol :: pendingOpeningSymbols)
+          processLine(line, rest, newSymbols, currentSymbol :: pendingOpeningSymbols, syntaxErrors)
         }
 
       }
-      case Nil => symbols
+      case Nil => (symbols, syntaxErrors)
     }
   }
 
 //  val x = "((((>".toList
 //  println(processLine(x, symbols))
 
-  val testRun = input.map{
+  val processFile = input.map{
     line => {
       println(line)
-      processLine(line, line, symbols, List.empty[Char])
+      processLine(line, line, symbols, List.empty[Char], SyntaxErrors(List.empty[Char]))
     }
   }
 //  {([(<{}[<>[]}>{[]{[(<()>
 //  {([(<{}[<>[] } is wrong should be ]
 
-  println(testRun)
+  println(processFile)
+  val syntaxErrorResult = processFile
+    .filterNot(_._2.syntaxErrors.isEmpty)
+    .map(_._2)
+    .flatMap(_.syntaxErrors)
+    .map(c => syntaxErrorScore.getOrElse(c, 0))
+    .sum
+  println(syntaxErrorResult)
 
 //  println(input.map(line => processLine(line, symbols)))
 
