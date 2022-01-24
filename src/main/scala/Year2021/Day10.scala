@@ -8,12 +8,9 @@ object Day10 extends App {
     .getLines()
     .toList
     .map(_.toList)
-  println(input)
 
   case class Symbol(symbol: Char, count: Int)
-  case class SyntaxErrors(syntaxErrors: List[Char])
-  case class OpeningSymbol(symbol: Char, count: Int, pendingClosure: Boolean)
-  case class ClosingSymbol(symbol: Char, count: Int, closedAnOpening: Boolean)
+  case class Line(characters: List[Char], charsToProcess: List[Char], symbols: List[Symbol], pendingOpeningSymbols: List[Char], syntaxErrors: List[Char])
 
   val symbols = "{}()[]<>".map(s => Symbol(s, 0)).toList
 
@@ -44,83 +41,75 @@ object Day10 extends App {
     '>' -> 25137
   )
 
+  val completionScore = Map(
+    ')' -> 1,
+    '}' -> 3,
+    ']' -> 2,
+    '>' -> 4
+  )
+
+  //  {([(<{}[<>[]}>{[]{[(<()>
+  //  {([(<{}[<>[] -> } is wrong should be ]
+
   @tailrec
-  def processLine(line: List[Char], charsToProcess: List[Char], symbols: List[Symbol], pendingOpeningSymbols: List[Char], syntaxErrors: SyntaxErrors): (List[Symbol], SyntaxErrors) = {
-//    println(line)
-//    println(charsToProcess)
-//    println(pendingOpeningSymbols)
-    charsToProcess match {
-      case currentSymbol :: rest => {
+  def processLine(line: Line): Line = {
+    line.charsToProcess match {
+      case currentSymbol :: rest =>
         println(currentSymbol)
         val newSymbols = updateSymbols(currentSymbol, symbols)
         if (isClosingSymbol(currentSymbol)) {
 //          check there is a pending opening symbol
-//          what is the last opening symbol??
+//          what is the last opening symbol?
           val openingSymbol = closingSymbols.getOrElse(currentSymbol, '?')
-          if (pendingOpeningSymbols.head != openingSymbol) {
-            println(s"Syntax error: $currentSymbol in $charsToProcess expecting ${openingSymbols.getOrElse(pendingOpeningSymbols.head, '?')}")
-//            processLine(line, rest, newSymbols, pendingOpeningSymbols.tail, SyntaxErrors(currentSymbol :: syntaxErrors.syntaxErrors))
-          } else println("OK")
-          val newSyntaxErrors = if (pendingOpeningSymbols.head == openingSymbol) syntaxErrors else SyntaxErrors(currentSymbol :: syntaxErrors.syntaxErrors)
-          processLine(line, rest, newSymbols, pendingOpeningSymbols.tail, newSyntaxErrors)
+          if (line.pendingOpeningSymbols.head != openingSymbol) {
+            println(s"Syntax error: $currentSymbol in $line.charsToProcess expecting ${openingSymbols.getOrElse(line.pendingOpeningSymbols.head, '?')}")
+          } else println("Closing symbol correct.")
+          val newSyntaxErrors = if (line.pendingOpeningSymbols.head == openingSymbol) line.syntaxErrors else currentSymbol :: line.syntaxErrors
+          processLine(Line(line.characters, rest, newSymbols, line.pendingOpeningSymbols.tail, newSyntaxErrors))
         }
         else {
 //          opening symbol
           val newSymbols = updateSymbols(currentSymbol, symbols)
-          processLine(line, rest, newSymbols, currentSymbol :: pendingOpeningSymbols, syntaxErrors)
+          processLine(Line(line.characters, rest, newSymbols, currentSymbol :: line.pendingOpeningSymbols, line.syntaxErrors))
         }
 
-      }
-      case Nil => (symbols, syntaxErrors)
+      case Nil => line
     }
   }
 
-//  val x = "((((>".toList
-//  println(processLine(x, symbols))
-
-  val processFile = input.map{
+  val processedLines = input.map{
     line => {
-      println(line)
-      processLine(line, line, symbols, List.empty[Char], SyntaxErrors(List.empty[Char]))
+      println(s"new line start: $line")
+      processLine(Line(line, line, symbols, List.empty[Char], List.empty[Char]))
     }
   }
-//  {([(<{}[<>[]}>{[]{[(<()>
-//  {([(<{}[<>[] } is wrong should be ]
 
-  println(processFile)
-  val syntaxErrorResult = processFile
-    .filterNot(_._2.syntaxErrors.isEmpty)
-    .map(_._2)
+  val partitionedLines = processedLines.partition(_.syntaxErrors.isEmpty)
+
+  val part1Answer = partitionedLines
+    ._2
     .flatMap(_.syntaxErrors)
     .map(c => syntaxErrorScore.getOrElse(c, 0))
     .sum
-  println(syntaxErrorResult)
 
-//  println(input.map(line => processLine(line, symbols)))
+  println(part1Answer)
 
-//  val symbols = Map(
-//    '(' -> 0,
-//    '[' -> 0,
-//    '{' -> 0,
-//    '<' -> 0,
-//    ')' -> 0,
-//    ']' -> 0,
-//    '}' -> 0,
-//    '>' -> 0
-//  )
-//
-//  def updateMap(c: Char): Map[Char, Int] =
-//    symbols.get(c) match {
-//      case Some(v) => symbols.updated(c, v + 1)
-//      case None => symbols.updated(c, 0)
-//    }
+  val lineCompletionScores = partitionedLines
+    ._1
+    .map(_.pendingOpeningSymbols)
+    .map(pos => pos.map(c => openingSymbols.getOrElse(c, '?')))
+    .map(cs => cs.map(s => completionScore.getOrElse(s, 0).toLong))
+    .map{symbolScores => {
+      symbolScores.foldLeft(0L){(total, currentScore) => {
+        (total * 5) + currentScore
+      }
+    }}}
+    .sorted
+    .zipWithIndex
 
-//  println(updateMap('('))
+  val middleIndex = (lineCompletionScores.length.toDouble / 2.0).floor.toInt
+  val part2Answer = lineCompletionScores.filter(_._2 == middleIndex).head._1
 
-//  val x = "([])".tapEach(c => if (openSymbols.contains(c)) openSymbols + (c, openSymbols.getOrElse(c, 0) + 1))
-//  println(x)
-
-//  val x = "((((".map(updateMap)
-//  println(x)
+  println(part2Answer)
 
 }
