@@ -3,22 +3,16 @@ package Year2021
 import scala.annotation.tailrec
 import scala.io.Source.fromResource
 
+//  {([(<{}[<>[]}>{[]{[(<()>
+//  {([(<{}[<>[] -> } is wrong should be ]
+
 object Day10 extends App {
   val input = fromResource("Year2021/Day10.txt")
     .getLines()
     .toList
     .map(_.toList)
 
-  case class Symbol(symbol: Char, count: Int)
-  case class Line(characters: List[Char], charsToProcess: List[Char], symbols: List[Symbol], pendingOpeningSymbols: List[Char], syntaxErrors: List[Char])
-
-  val symbols = "{}()[]<>".map(s => Symbol(s, 0)).toList
-
-  def updateSymbols(c: Char, symbols: List[Symbol]): List[Symbol] =
-    symbols.map(s => if(s.symbol == c) s.copy(count = s.count + 1) else s)
-
-  def isOpeningSymbol(c: Char): Boolean = "({[<".contains(c)
-  def isClosingSymbol(c: Char): Boolean = ")}]>".contains(c)
+  case class Line(characters: List[Char], charsToProcess: List[Char], pendingOpeningSymbols: List[Char], syntaxErrors: List[Char])
 
   val closingSymbols = Map(
     ')' -> '(',
@@ -48,41 +42,30 @@ object Day10 extends App {
     '>' -> 4
   )
 
-  //  {([(<{}[<>[]}>{[]{[(<()>
-  //  {([(<{}[<>[] -> } is wrong should be ]
+  def isOpeningSymbol(c: Char): Boolean = "({[<".contains(c)
+  def isClosingSymbol(c: Char): Boolean = ")}]>".contains(c)
 
   @tailrec
   def processLine(line: Line): Line = {
     line.charsToProcess match {
       case currentSymbol :: rest =>
-        println(currentSymbol)
-        val newSymbols = updateSymbols(currentSymbol, symbols)
         if (isClosingSymbol(currentSymbol)) {
 //          check there is a pending opening symbol
 //          what is the last opening symbol?
           val openingSymbol = closingSymbols.getOrElse(currentSymbol, '?')
-          if (line.pendingOpeningSymbols.head != openingSymbol) {
-            println(s"Syntax error: $currentSymbol in $line.charsToProcess expecting ${openingSymbols.getOrElse(line.pendingOpeningSymbols.head, '?')}")
-          } else println("Closing symbol correct.")
           val newSyntaxErrors = if (line.pendingOpeningSymbols.head == openingSymbol) line.syntaxErrors else currentSymbol :: line.syntaxErrors
-          processLine(Line(line.characters, rest, newSymbols, line.pendingOpeningSymbols.tail, newSyntaxErrors))
+          processLine(Line(line.characters, rest, line.pendingOpeningSymbols.tail, newSyntaxErrors))
         }
         else {
 //          opening symbol
-          val newSymbols = updateSymbols(currentSymbol, symbols)
-          processLine(Line(line.characters, rest, newSymbols, currentSymbol :: line.pendingOpeningSymbols, line.syntaxErrors))
+          processLine(Line(line.characters, rest, currentSymbol :: line.pendingOpeningSymbols, line.syntaxErrors))
         }
 
       case Nil => line
     }
   }
 
-  val processedLines = input.map{
-    line => {
-      println(s"new line start: $line")
-      processLine(Line(line, line, symbols, List.empty[Char], List.empty[Char]))
-    }
-  }
+  val processedLines = input.map(line => processLine(Line(line, line, List.empty[Char], List.empty[Char])))
 
   val partitionedLines = processedLines.partition(_.syntaxErrors.isEmpty)
 
