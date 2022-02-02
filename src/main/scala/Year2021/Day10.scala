@@ -90,7 +90,7 @@ object Day10 extends App {
     .sorted
     .zipWithIndex
 
-  val middleIndex = (lineCompletionScores.length.toDouble / 2.0).floor.toInt
+  val middleIndex = lineCompletionScores.length / 2
   val part2Answer = lineCompletionScores.filter(_._2 == middleIndex).head._1
 
   println(part2Answer)
