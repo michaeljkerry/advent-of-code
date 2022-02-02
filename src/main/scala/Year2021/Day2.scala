@@ -7,8 +7,7 @@ object Day2 extends App {
     .getLines()
     .toList
     .map(i => i.split(' ').toList)
-    .map(l => (l(0), l(1)))
-    .map(t => (t._1, t._2.toInt))
+    .map(l => (l(0), l(1).toInt))
 
   case class Position(horizontal: Int, depth: Int)
   case class PositionWithAim(horizontal: Int, depth: Int, aim: Int)
