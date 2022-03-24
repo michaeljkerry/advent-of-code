@@ -27,7 +27,7 @@ object Day2 extends App {
 
   println(resultPart1._2)
 
-  val movesPart2 = Map(
+  val validMoves = Map(
     '1' -> Map('D' -> '3'),
     '2' -> Map('R' -> '3', 'D' -> '6'),
     '3' -> Map('U' -> '1', 'D' -> '7', 'L' -> '2', 'R' -> '4'),
@@ -44,8 +44,8 @@ object Day2 extends App {
   )
 
   def movePart2(position: Char, command: Char): Char = {
-    val validMoves = movesPart2.getOrElse(position, Map.empty[Char, Char])
-    validMoves.get(command) match {
+    val moves = validMoves.getOrElse(position, Map.empty[Char, Char])
+    moves.get(command) match {
       case Some(newPosition) => newPosition
       case None => position
     }
