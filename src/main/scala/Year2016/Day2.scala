@@ -18,7 +18,7 @@ object Day2 extends App {
     }
 
   def getLineResult(startNo: Int, commands: List[Char]): Int =
-    commands.foldLeft(startNo){(currentNo, command) => move(currentNo, command)}
+    commands.foldLeft(startNo)(move)
 
   val resultPart1 = input.foldLeft((5, List.empty[Int])){ (currentNumber, commands) => {
     val lineResult = getLineResult(currentNumber._1, commands)
@@ -52,7 +52,7 @@ object Day2 extends App {
   }
 
   def getLineResultPart2(startPosition: Char, commands: List[Char]): Char =
-    commands.foldLeft(startPosition){ (currentPosition, command) => movePart2(currentPosition, command)}
+    commands.foldLeft(startPosition)(movePart2)
 
   val resultPart2 = input.foldLeft(('5', List.empty[Char])){ (currentPosition, commands) => {
     val lineResult = getLineResultPart2(currentPosition._1, commands)
