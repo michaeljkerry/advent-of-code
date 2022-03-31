@@ -9,8 +9,6 @@ object Day3 extends App {
     .map(_.trim)
     .map(_.split("\\s+").toList.map(_.toInt))
 
-  println(input)
-
   def validateTriangle(sides: List[Int]): Boolean =
     (sides(0) + sides(1) > sides(2)) && (sides(0) + sides(2) > sides(1)) && (sides(1) + sides(2) > sides(0))
 
@@ -21,9 +19,8 @@ object Day3 extends App {
   val resultPart2 = input
     .transpose
     .map(_.grouped(3).toList)
-    .map(l => l.count(validateTriangle))
+    .map(_.count(validateTriangle))
     .sum
 
   println(resultPart2)
-
 }
