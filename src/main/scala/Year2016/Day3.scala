@@ -12,9 +12,10 @@ object Day3 extends App {
   println(input)
 
   def validateTriangle(sides: List[Int]): Boolean =
-    if ((sides(0) + sides(1)) > sides(2) && (sides(0) + sides(2)) > sides(1) && (sides(1) + sides(2)) > sides(0)) true else false
+    (sides(0) + sides(1) > sides(2)) && (sides(0) + sides(2) > sides(1)) && (sides(1) + sides(2) > sides(0))
 
   val resultPart1 = input.count(validateTriangle)
+
   println(resultPart1)
 
   val resultPart2 = input

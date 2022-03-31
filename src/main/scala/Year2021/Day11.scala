@@ -66,12 +66,15 @@ object Day11 extends App {
   @tailrec
   def loop(cavern: Cavern, flashingOctopusesPreviousLoop: Set[Octopus]): Cavern = {
 
+//    Set flashed flag for flashing octopuses
     val octopusesWithFlashesUpdated = cavern.octopuses.map(o => if (o.energyLevel > 9) o.copy(energyLevel = 0, flashed = true) else o)
 
+//    we only want the flashing octopuses we haven't seen before
     val flashedOctopuses = if (flashingOctopusesPreviousLoop.isEmpty) octopusesWithFlashesUpdated.filter(_.flashed) else flashingOctopusesPreviousLoop
 
     val flashedNeighboursCoordinates = flashedOctopuses.toList.flatMap(getNeighbourCoordinates)
 
+//    for every flashing octopus, increase the energy level of neighbours
     val octopusesWithFlashedNeighboursUpdated = flashedNeighboursCoordinates.foldLeft(octopusesWithFlashesUpdated){(octopuses, nextCoordinate) => {
       octopuses.map(o => if (o.xIndex == nextCoordinate._1 && o.yIndex == nextCoordinate._2) o.copy(energyLevel = o.energyLevel + 1) else o)
     }}
