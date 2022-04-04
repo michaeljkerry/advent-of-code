@@ -18,11 +18,9 @@ object Day4 extends App {
     }
   }
 
-  assert(parseInput("aaaaa-bbb-z-y-x-123[abxyz]") == Room("aaaaa-bbb-z-y-x", 123, "abxyz"))
-
   def mostFrequentChars(name: String): String =
     name
-      .filterNot(c => c == '-')
+      .filterNot(_ == '-')
       .groupBy(identity)
       .view
       .mapValues(_.length)
@@ -37,9 +35,6 @@ object Day4 extends App {
       .take(5)
       .mkString
       .substring(0, 5)
-
-  assert(mostFrequentChars("aaaaabbbzyx") == "abxyz")
-  assert(mostFrequentChars("abcdefgh") == "abcde")
 
   val part1Answer = rooms.filter(r => mostFrequentChars(r.name) == r.checksum).map(_.sectorId).sum
 
@@ -60,9 +55,15 @@ object Day4 extends App {
     }
   }
 
-  assert(shiftCipher(name = "qzmt-zixmtkozy-ivhz", id = 343) == "very encrypted name")
-
-  val part2Answer = rooms.filter(r => shiftCipher(r.name, r.sectorId).contains("northpole")).map(_.sectorId)
+  val part2Answer = rooms
+    .filter(r => shiftCipher(r.name, r.sectorId).contains("northpole"))
+    .map(_.sectorId)
+    .head
 
   println(part2Answer)
+
+  assert(parseInput("aaaaa-bbb-z-y-x-123[abxyz]") == Room("aaaaa-bbb-z-y-x", 123, "abxyz"))
+  assert(mostFrequentChars("aaaaabbbzyx") == "abxyz")
+  assert(mostFrequentChars("abcdefgh") == "abcde")
+  assert(shiftCipher(name = "qzmt-zixmtkozy-ivhz", id = 343) == "very encrypted name")
 }
