@@ -32,7 +32,6 @@ object Day4 extends App {
       .sortBy(_._1)
       .reverse
       .map(_._2)
-      .take(5)
       .mkString
       .substring(0, 5)
 
