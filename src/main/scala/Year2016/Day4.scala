@@ -4,7 +4,7 @@ import scala.io.Source.fromResource
 import scala.util.matching.Regex
 
 object Day4 extends App {
-  val input = fromResource("Year2016/Day4Test.txt")
+  val rooms = fromResource("Year2016/Day4.txt")
     .getLines()
     .toList
     .map(parseInput)
@@ -14,22 +14,55 @@ object Day4 extends App {
   def parseInput(line: String): Room = {
     val roomGroups: Regex = raw"^(.*?)(\d+)(\[.*\])".r
     line match {
-      case roomGroups(n, s, c) => Room(n.replace("-", ""), s.toInt, c.replaceAll("[\\[\\]]", ""))
+      case roomGroups(n, s, c) => Room(n.dropRight(1), s.toInt, c.replaceAll("[\\[\\]]", ""))
     }
   }
 
+  assert(parseInput("aaaaa-bbb-z-y-x-123[abxyz]") == Room("aaaaa-bbb-z-y-x", 123, "abxyz"))
+
   def mostFrequentChars(name: String): String =
     name
+      .filterNot(c => c == '-')
       .groupBy(identity)
       .view
       .mapValues(_.length)
       .toList
-      .sortBy(_._2)
+      .groupBy(_._2)
+      .view
+      .mapValues(v => v.map(_._1).sorted.mkString)
+      .toList
+      .sortBy(_._1)
       .reverse
-      .map(_._1)
+      .map(_._2)
+      .take(5)
       .mkString
+      .substring(0, 5)
 
-  println(input)
+  assert(mostFrequentChars("aaaaabbbzyx") == "abxyz")
+  assert(mostFrequentChars("abcdefgh") == "abcde")
 
-  println("aaaaabbbzyx".groupBy(identity).view.mapValues(_.size).toList.sortBy(_._2).groupBy(_._2).filter(_._2.size > 1))
+  val part1Answer = rooms.filter(r => mostFrequentChars(r.name) == r.checksum).map(_.sectorId).sum
+
+  println(part1Answer)
+
+  def shiftCipher(name: String, id: Int): String = {
+    val alphabetCount = id / 26 + 2
+    val alphabet = "abcdefghijklmnopqrstuvwxyz"
+    val alphabets = (1 to alphabetCount).foldLeft(List.empty[String]){ (state, _) => state :+ alphabet}.mkString
+    name.map(l => shiftChar(l, id, alphabets))
+  }
+
+  def shiftChar(char: Char, id: Int, alphabets: String): Char = {
+    if (char == '-') ' '
+    else {
+      val startIndex = alphabets.indexOf(char)
+      alphabets.charAt(startIndex + id)
+    }
+  }
+
+  assert(shiftCipher(name = "qzmt-zixmtkozy-ivhz", id = 343) == "very encrypted name")
+
+  val part2Answer = rooms.filter(r => shiftCipher(r.name, r.sectorId).contains("northpole")).map(_.sectorId)
+
+  println(part2Answer)
 }
