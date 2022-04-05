@@ -10,7 +10,7 @@ object Day6 extends App {
 
   val part1Answer = input
     .transpose
-    .map(_.groupBy(identity).view.mapValues(_.length).toList.sortBy(_._2).reverse.head)
+    .map(_.groupBy(identity).view.mapValues(_.length).toList.maxBy(_._2))
     .map(_._1)
     .mkString
 
