@@ -21,35 +21,30 @@ object Day7 extends App {
   }
 
   @tailrec
-  def hasABBA(text: String): Boolean = {
+  def supportsTLS(text: String): Boolean = {
     val groupedChars = text.toList.sliding(2, 2).toList
     groupedChars match {
-      case head :: next :: Nil => compareTwo(head, next)
-      case head :: tail => if (compareTwo(head, tail.head)) true else hasABBA(text.drop(1))
       case Nil => false
+      case head :: next :: Nil => isABBA(head, next)
+      case head :: tail => if (isABBA(head, tail.head)) true else supportsTLS(text.drop(1))
     }
   }
 
-  def compareTwo(list1: List[Char], list2: List[Char]): Boolean = {
+  def isABBA(list1: List[Char], list2: List[Char]): Boolean = {
     (list1.mkString == list2.reverse.mkString) && list1(0) != list1(1)
   }
 
-  val part1Answer = ipAdresses.count(ip => ip.hypernets.forall(h => !hasABBA(h)) && ip.supernets.exists(s => hasABBA(s)))
+  val part1Answer = ipAdresses.count(ip => ip.hypernets.forall(h => !supportsTLS(h)) && ip.supernets.exists(supportsTLS))
   println(part1Answer)
 
-
   def supportsSSL(ipAddress: IpAddress): Boolean = {
-    val aba = ipAddress.supernets.flatMap(abas).map(_.mkString)
-    val bab = aba.map(makeBAB)
-    bab.exists(b => ipAddress.hypernets.exists(h => h.contains(b)))
+    val abas = ipAddress.supernets.flatMap(findABAs).map(_.mkString)
+    val bab = abas.map(makeBAB)
+    bab.exists(b => ipAddress.hypernets.exists(_.contains(b)))
   }
 
-  def abas(text: String): List[List[Char]] = {
+  def findABAs(text: String): List[List[Char]] = {
     text.toList.sliding(3).toList.map(isABA).filter(_._1).map(_._2)
-  }
-
-  def compareThree(list1: List[Char], list2: List[Char]): Boolean = {
-    (list1.mkString == list2.reverse.mkString) && list1(0) != list1(1)
   }
 
   def isABA(chars: List[Char]): (Boolean, List[Char]) = {
@@ -66,9 +61,9 @@ object Day7 extends App {
 
 
   assert(parseIpAdress("pjvdfpsdlampeztecfq[lpqshzeegwiouas]nwxqaoryigyvbby[iiddsczjoxentwv]weexunkmtaaufurjz[meywmosucyrxzlgxi]huqfmfpxdmcmqfk") == IpAddress(List("lpqshzeegwiouas", "iiddsczjoxentwv", "meywmosucyrxzlgxi"), List("pjvdfpsdlampeztecfq", "nwxqaoryigyvbby", "weexunkmtaaufurjz", "huqfmfpxdmcmqfk")))
-  assert(hasABBA("abba"))
-  assert(hasABBA("ioxxoj"))
-  assert(!hasABBA("aaaa"))
+  assert(supportsTLS("abba"))
+  assert(supportsTLS("ioxxoj"))
+  assert(!supportsTLS("aaaa"))
   assert(isABA(List('x', 'y', 'x')) == (true, List('x', 'y', 'x')))
   assert(isABA(List('x', 'x', 'x')) == (false, List('x', 'x', 'x')))
   assert(makeBAB("xyx") == "yxy")
