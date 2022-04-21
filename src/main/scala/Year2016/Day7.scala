@@ -37,8 +37,39 @@ object Day7 extends App {
   val part1Answer = ipAdresses.count(ip => ip.hypernets.forall(h => !hasABBA(h)) && ip.supernets.exists(s => hasABBA(s)))
   println(part1Answer)
 
+
+  def supportsSSL(ipAddress: IpAddress): Boolean = {
+    val aba = ipAddress.supernets.flatMap(abas).map(_.mkString)
+    val bab = aba.map(makeBAB)
+    bab.exists(b => ipAddress.hypernets.exists(h => h.contains(b)))
+  }
+
+  def abas(text: String): List[List[Char]] = {
+    text.toList.sliding(3).toList.map(isABA).filter(_._1).map(_._2)
+  }
+
+  def compareThree(list1: List[Char], list2: List[Char]): Boolean = {
+    (list1.mkString == list2.reverse.mkString) && list1(0) != list1(1)
+  }
+
+  def isABA(chars: List[Char]): (Boolean, List[Char]) = {
+    (chars(0) == chars(2) && chars(0) != chars(1), chars)
+  }
+
+  def makeBAB(aba: String): String = {
+    val chars = aba.toList
+    List(chars(1), chars(0), chars(1)).mkString
+  }
+
+  val part2Answer = ipAdresses.map(supportsSSL).count(b => b)
+  println(part2Answer)
+
+
   assert(parseIpAdress("pjvdfpsdlampeztecfq[lpqshzeegwiouas]nwxqaoryigyvbby[iiddsczjoxentwv]weexunkmtaaufurjz[meywmosucyrxzlgxi]huqfmfpxdmcmqfk") == IpAddress(List("lpqshzeegwiouas", "iiddsczjoxentwv", "meywmosucyrxzlgxi"), List("pjvdfpsdlampeztecfq", "nwxqaoryigyvbby", "weexunkmtaaufurjz", "huqfmfpxdmcmqfk")))
   assert(hasABBA("abba"))
   assert(hasABBA("ioxxoj"))
   assert(!hasABBA("aaaa"))
+  assert(isABA(List('x', 'y', 'x')) == (true, List('x', 'y', 'x')))
+  assert(isABA(List('x', 'x', 'x')) == (false, List('x', 'x', 'x')))
+  assert(makeBAB("xyx") == "yxy")
 }
