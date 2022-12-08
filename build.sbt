@@ -9,3 +9,6 @@ libraryDependencies  ++= Seq(
   "dev.optics" %% "monocle-core"  % "3.0.0",
   "dev.optics" %% "monocle-macro" % "3.0.0", // only for Scala 2.13
 )
+
+test
+test
