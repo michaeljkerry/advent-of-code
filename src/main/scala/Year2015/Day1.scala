@@ -16,9 +16,6 @@ object Day1 extends App {
     } else {
       floorState.copy(up = floorState.up + 1, floorsProcessed = floorState.floorsProcessed + 1, currentFloor = floorState.currentFloor + 1)
     }
-    println(nextFloor)
-    println(s"floorState: $floorState")
-    println(s"newFloorState: $newFloorState")
     newFloorState
   }
   @tailrec
@@ -32,15 +29,25 @@ object Day1 extends App {
     }
   }
 
+  @tailrec
+  def processDeliveryUntilBasement(floorsToProcess: String, floors: Floors): Floors = {
+    floorsToProcess.headOption match {
+      case None => floors
+      case Some(f) => {
+        val processed = processFloor(f, floors)
+        if (processed.currentFloor == -1) processed
+        else processDeliveryUntilBasement(floorsToProcess.tail, processed)
+      }
+    }
+  }
+
   println(input)
 
-  val result = processDelivery(input.head, Floors(0, 0, 0, 0)).currentFloor
-  println(s"result: $result")
+  val resultPart1 = processDelivery(input.head, Floors(0, 0, 0, 0))
+  println(s"resultPart1: $resultPart1")
 
-  val allResults = input.map(i => processDelivery(i, Floors(0, 0, 0, 0)))
-  println(s"all results: $allResults")
-
-//  Part 2
+  val resultPart2 = processDeliveryUntilBasement(input.head, Floors(0, 0, 0, 0))
+  println(s"resultPart2: $resultPart2")
 
 
 }
